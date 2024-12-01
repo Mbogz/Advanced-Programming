@@ -5,8 +5,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Calendar;
 
 public class DepositTrasaction extends BaseTransaction {
-    public DepositTrasaction(int amount, @NotNull Calendar date){
-        super(amount, date);
+    public DepositTransaction(double amount, Calendar date, String transactionID) {
+        super(amount, date, transactionID);
     }
     private boolean checkDepositAmount(int amt){
         if (amt < 0){
@@ -22,9 +22,8 @@ public class DepositTrasaction extends BaseTransaction {
         System.out.println("Deposit Trasaction: "+this.toString());
     }
 
-    public void apply(BankAccount ba){
-        double curr_balance = ba.getBalance();
-        double new_balance = curr_balance + getAmount();
-        ba.setBalance(new_balance);
+    @Override
+    public void apply(BankAccount ba) {
+        ba.deposit(getAmount());
     }
 }
