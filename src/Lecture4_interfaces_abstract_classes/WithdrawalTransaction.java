@@ -1,45 +1,57 @@
-package Lecture4_interfaces_abstract_classes;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Calendar;
-
 public class WithdrawalTransaction extends BaseTransaction {
-    public WithdrawalTransaction(int amount, @NotNull Calendar date) {
-        super(amount, date);
+    private double unmetAmount;
+
+    public WithdrawalTransaction(double amount, java.util.Calendar date, String transactionID) {
+        super(amount, date, transactionID);
+        this.unmetAmount = 0.0;
     }
 
-    private boolean checkDepositAmount(int amt) {
-        if (amt < 0) {
-            return false;
+    @Override
+    public void apply(BankAccount ba) throws InsufficientFundsException {
+        super.apply(ba);  // Call the base class apply method
+        if (ba.getBalance() < getAmount()) {
+            throw new InsufficientFundsException("Insufficient funds for withdrawal. Available balance: " + ba.getBalance());
+        }
+        ba.withdraw(getAmount());
+        System.out.println("Withdrawal of " + getAmount() + " applied to account.");
+    }
+
+    // Overloaded apply method that supports partial withdrawal
+    public void apply(BankAccount ba, boolean allowPartial) throws InsufficientFundsException {
+        super.apply(ba);  // Call to the base class apply method
+        if (allowPartial) {
+            if (ba.getBalance() < getAmount()) {
+                unmetAmount = getAmount() - ba.getBalance();
+                ba.withdraw(ba.getBalance());  // Withdraw all available funds
+                System.out.println("Partial withdrawal applied. Unmet amount: " + unmetAmount);
+            } else {
+                ba.withdraw(getAmount());  // Full withdrawal
+                System.out.println("Full withdrawal of " + getAmount() + " applied.");
+            }
         } else {
-            return true;
+            // No partial withdrawal allowed, proceed with full withdrawal check
+            if (ba.getBalance() < getAmount()) {
+                throw new InsufficientFundsException("Insufficient funds for withdrawal. Available balance: " + ba.getBalance());
+            }
+            ba.withdraw(getAmount());
+            System.out.println("Full withdrawal of " + getAmount() + " applied.");
         }
+        System.out.println("Transaction complete. Current balance: " + ba.getBalance());
     }
 
-    // Method to reverse the transaction
+    @Override
     public boolean reverse() {
-        return true;
-    } // return true if reversal was successful
-
-    // Method to print a transaction receipt or details
-    public void printTransactionDetails() {
-        System.out.println("Deposit Trasaction: " + this.toString());
-    }
-
-    /*
-    Oportunity for assignment: implementing different form of withdrawal
-     */
-    public void apply(BankAccount ba) {
-        double curr_balance = ba.getBalance();
-        if (curr_balance > getAmount()) {
-            double new_balance = curr_balance - getAmount();
-            ba.setBalance(new_balance);
+        if (associatedAccount == null) {
+            System.out.println("Transaction not associated with an account. Cannot reverse.");
+            return false;
         }
+        associatedAccount.deposit(getAmount());
+        System.out.println("Withdrawal of " + getAmount() + " reversed.");
+        return true;
     }
 
-    /*
-    Assignment 1 Q3: Write the Reverse method - a method unique to the WithdrawalTransaction Class
-     */
+    // Getter method for unmetAmount
+    public double getUnmetAmount() {
+        return unmetAmount;
+    }
 }
-

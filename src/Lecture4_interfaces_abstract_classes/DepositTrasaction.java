@@ -1,29 +1,19 @@
-package Lecture4_interfaces_abstract_classes;
+public class DepositTransaction extends BaseTransaction {
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Calendar;
-
-public class DepositTrasaction extends BaseTransaction {
-    public DepositTransaction(double amount, Calendar date, String transactionID) {
+    public DepositTransaction(double amount, java.util.Calendar date, String transactionID) {
         super(amount, date, transactionID);
-    }
-    private boolean checkDepositAmount(int amt){
-        if (amt < 0){
-           return false;
-        }
-        else{
-            return  true;
-        }
-    }
-
-    // Method to print a transaction receipt or details
-    public void printTransactionDetails(){
-        System.out.println("Deposit Trasaction: "+this.toString());
     }
 
     @Override
     public void apply(BankAccount ba) {
-        ba.deposit(getAmount());
+        try {
+            super.apply(ba);  // Call the apply method of BaseTransaction (if it does anything)
+
+            // Since deposits don't generally have insufficient funds, we just do the deposit
+            ba.deposit(getAmount());
+            System.out.println("Deposit of " + getAmount() + " applied to account.");
+        } catch (InsufficientFundsException e) {
+            System.out.println("Error: " + e.getMessage());  // Catch the exception if it is thrown
+        }
     }
 }
